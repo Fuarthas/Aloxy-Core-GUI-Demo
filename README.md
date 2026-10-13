@@ -8,7 +8,7 @@ sensor or test payload
   -> HTTP hook -> Node-RED (Docker on Pi, :1880)  Aloxy's Modbus flow + dashboard add-on tab
   -> POST https://<app>.vercel.app/api/ingest     Bearer INGEST_TOKEN
   -> Upstash Redis                                 latest state per valve
-  <- GET /api/valves, polled every 2 s by the page
+  <- GET /api/valves, polled every 10 s by the page (paused in background tabs)
   -> Chromium kiosk on the Pi's monitor
 ```
 

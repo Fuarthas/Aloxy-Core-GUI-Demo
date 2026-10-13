@@ -1,6 +1,6 @@
 "use client";
 
-// Polls /api/valves every POLL_MS and redraws. A 1 s clock keeps the
+// Polls /api/valves every POLL_MS (paused while the tab is hidden) and redraws. A 1 s clock keeps the
 // "x minutes ago" labels and STALE checks moving between polls.
 
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +23,7 @@ export function Dashboard() {
   useEffect(() => {
     let cancelled = false;
     async function poll() {
+      if (document.visibilityState === "hidden") return; // background tab: save requests
       try {
         const res = await fetch("/api/valves", { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -41,11 +42,14 @@ export function Dashboard() {
     poll();
     const p = setInterval(poll, POLL_MS);
     const c = setInterval(() => setTick(Date.now()), 1000);
+    const onVisible = () => document.visibilityState === "visible" && poll();
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearTimeout(start);
       clearInterval(p);
       clearInterval(c);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -71,7 +75,17 @@ export function Dashboard() {
           <span className={live ? styles.live : styles.offline}>
             {live ? "● LIVE" : error ? `● DISCONNECTED (${error})` : "● CONNECTING"}
           </span>
-          <span className={styles.clock}>{new Date(now).toLocaleTimeString()}</span>
+          <span className={styles.clock}>
+            {new Date(now).toLocaleString([], {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
+          </span>
         </div>
       </header>
 
