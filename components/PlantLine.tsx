@@ -34,6 +34,15 @@ export function PlantLine({ name, deviceIds, valves, tankLevel, now, staleMinute
   });
   const tankFed = flowing && passesFlow(valves.get(deviceIds[deviceIds.length - 1]));
 
+  // The tank shows how far the line is open: the smallest opening along it,
+  // since valves in series are limited by the most-closed one. null = unknown
+  // (a valve has no data or Core marks its position invalid).
+  const openings = deviceIds.map((id) => {
+    const v = valves.get(id);
+    return v && v.valid !== false ? v.openPercentage : null;
+  });
+  const lineOpen = openings.some((o) => o === null) ? null : Math.min(...(openings as number[]));
+
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={styles.line} role="img" aria-label={name}>
       <text x={20} y={40} className={styles.lineName}>
@@ -50,7 +59,7 @@ export function PlantLine({ name, deviceIds, valves, tankLevel, now, staleMinute
       ))}
 
       <Pump x={70} y={PIPE_Y} />
-      <Tank x={PIPE_END} y={PIPE_Y} level={tankLevel} fed={tankFed} />
+      <Tank x={PIPE_END} y={PIPE_Y} level={tankLevel ?? lineOpen} fed={tankFed} />
 
       {deviceIds.map((id, i) => {
         const v = valves.get(id);
@@ -90,21 +99,19 @@ function Pump({ x, y }: { x: number; y: number }) {
   );
 }
 
-function Tank({ x, y, level, fed }: { x: number; y: number; level?: number; fed: boolean }) {
+function Tank({ x, y, level, fed }: { x: number; y: number; level: number | null; fed: boolean }) {
   const top = y - 70;
   const h = 140;
-  const fill = level === undefined ? 0 : (Math.min(100, Math.max(0, level)) / 100) * h;
+  const fill = level === null ? 0 : (Math.min(100, Math.max(0, level)) / 100) * h;
   return (
     <g className={styles.equipment}>
       <rect x={x} y={top} width={110} height={h} rx={12} />
       {fill > 0 && (
         <rect x={x + 2} y={top + h - fill} width={106} height={fill - 2} rx={10} className={fed ? styles.liquidFed : styles.liquid} />
       )}
-      {level !== undefined && (
-        <text x={x + 55} y={top + h / 2 + 6} className={styles.tankText}>
-          {level}%
-        </text>
-      )}
+      <text x={x + 55} y={top + h / 2 + 6} className={styles.tankText}>
+        {level === null ? "—" : `${Math.round(level)}%`}
+      </text>
     </g>
   );
 }

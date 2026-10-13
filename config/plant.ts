@@ -6,7 +6,7 @@
 export type PipeLine = {
   name: string;
   valves: string[];
-  tankLevel?: number; // % shown in the tank at the end of the line (static)
+  tankLevel?: number; // fixed % for the end tank; omit to show the line's live open %
 };
 
 export const plant: PipeLine[] = [];
