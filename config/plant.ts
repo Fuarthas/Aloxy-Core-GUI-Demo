@@ -1,7 +1,7 @@
-// The plant layout: which valves sit on which pipe line, left to right.
-// Edit this to match the demo. Device IDs are the 16-char devEUI (no "aloxy:").
-// Valves that report in but aren't listed here appear on an "Unassigned" line,
-// so a new sensor always shows up somewhere.
+// The plant layout: optional named pipe lines with several valves, left to right.
+// Device IDs are the 16-char devEUI (no "aloxy:"). Every valve that reports in
+// but isn't listed here gets its own line, named after its device ID (or its
+// LogicalName in Aloxy Core), so a new sensor always shows up.
 
 export type PipeLine = {
   name: string;
@@ -9,18 +9,7 @@ export type PipeLine = {
   tankLevel?: number; // % shown in the tank at the end of the line (static)
 };
 
-export const plant: PipeLine[] = [
-  {
-    name: "Line A",
-    valves: ["70B3D57BB1000001", "70B3D57BB1000002"],
-    tankLevel: 45,
-  },
-  {
-    name: "Line B",
-    valves: ["70B3D57BB1000003"],
-    tankLevel: 25,
-  },
-];
+export const plant: PipeLine[] = [];
 
 // A valve with no update for this long is shown as STALE.
 export const STALE_AFTER_MINUTES = Number(process.env.NEXT_PUBLIC_STALE_MINUTES ?? 15);

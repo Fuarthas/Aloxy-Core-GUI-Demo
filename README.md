@@ -16,7 +16,7 @@ sensor or test payload
 
 | Path | Purpose |
 |---|---|
-| `config/plant.ts` | **Edit this:** pipe lines, which valve IDs sit on each, tank levels, stale timeout |
+| `config/plant.ts` | Optional named lines grouping several valves (each sensor otherwise gets its own line), stale timeout |
 | `lib/aloxy.ts` | Aloxy.Core thing JSON → flat `ValveState` (field paths from Core 1.26.1's OpenAPI spec) |
 | `lib/status.ts` | Rules for valve colour and label (ERROR / OFFLINE / STALE / WARNING / OPEN / CLOSED / x% OPEN) |
 | `lib/store.ts` | Redis storage, or memory when Redis isn't configured |
@@ -85,4 +85,4 @@ The Pi runs Raspberry Pi OS (Debian 13) with labwc and auto-login.
 
 ## Changing the layout
 
-Edit `config/plant.ts`, commit and push. Vercel redeploys on every push to `main`, and the kiosk picks up the change on its next reload.
+Every sensor gets its own line automatically. To group several valves on one named line, add it to `config/plant.ts`, then commit and push. Vercel redeploys on every push to `main`, and the kiosk picks up the change on its next reload.

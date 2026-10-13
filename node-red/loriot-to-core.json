@@ -1,0 +1,123 @@
+[
+  {
+    "id": "b20000000000tab1",
+    "type": "tab",
+    "label": "LORIOT → Aloxy Core",
+    "disabled": false,
+    "info": "Real sensors: LORIOT WebSocket output -> Aloxy Core /core/calculate/lns/loriot.\nCore then pushes to /aloxy as usual (Modbus + Vercel).\nURL with token comes from the LORIOT_WS_URL env var on the node-red container."
+  },
+  {
+    "id": "b2000000000wscfg",
+    "type": "websocket-client",
+    "path": "${LORIOT_WS_URL}",
+    "tls": "",
+    "wholemsg": "false",
+    "hb": "30",
+    "subprotocol": "",
+    "headers": []
+  },
+  {
+    "id": "b2000000000cmt01",
+    "type": "comment",
+    "z": "b20000000000tab1",
+    "name": "Real sensor uplinks from LORIOT (Pi dials out, so no public address needed)",
+    "info": "",
+    "x": 330,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "b2000000000wsin1",
+    "type": "websocket in",
+    "z": "b20000000000tab1",
+    "name": "LORIOT app WebSocket",
+    "server": "",
+    "client": "b2000000000wscfg",
+    "x": 160,
+    "y": 100,
+    "wires": [
+      [
+        "b2000000000flt01",
+        "b2000000000dbg01"
+      ]
+    ]
+  },
+  {
+    "id": "b2000000000dbg01",
+    "type": "debug",
+    "z": "b20000000000tab1",
+    "name": "raw LORIOT",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "b2000000000flt01",
+    "type": "function",
+    "z": "b20000000000tab1",
+    "name": "uplinks → Core request",
+    "func": "// For each sensor uplink LORIOT sends \"rx\", then \"txd\" (its downlink to the\n// sensor), then \"gw\" (the same uplink plus gateway info). Aloxy Core's\n// /lns/loriot endpoint accepts \"gw\" and rejects \"rx\" (tested 2026-10-13),\n// so forward only \"gw\" and drop the rest.\nlet m = msg.payload;\nif (typeof m === \"string\") {\n    try { m = JSON.parse(m); } catch (e) { return null; }\n}\nif (m.cmd !== \"gw\" || !m.data) return null;\nnode.status({ fill: \"green\", shape: \"dot\", text: m.EUI + \" @ \" + new Date().toLocaleTimeString() });\nreturn {\n    url: \"http://aloxy-core:8080/core/calculate/lns/loriot\",\n    method: \"POST\",\n    headers: { \"Content-Type\": \"application/json\" },\n    payload: m\n};",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 410,
+    "y": 100,
+    "wires": [
+      [
+        "b2000000000req01"
+      ]
+    ]
+  },
+  {
+    "id": "b2000000000req01",
+    "type": "http request",
+    "z": "b20000000000tab1",
+    "name": "POST Core /lns/loriot",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 650,
+    "y": 100,
+    "wires": [
+      [
+        "b2000000000dbg02"
+      ]
+    ]
+  },
+  {
+    "id": "b2000000000dbg02",
+    "type": "debug",
+    "z": "b20000000000tab1",
+    "name": "Core reply",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": true,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "statusCode",
+    "statusType": "msg",
+    "x": 860,
+    "y": 100,
+    "wires": []
+  }
+]

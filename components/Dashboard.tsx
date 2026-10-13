@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ValveState } from "@/lib/aloxy";
 import { lastSeen, timeAgo, valveStatus } from "@/lib/status";
-import { plant, POLL_MS, STALE_AFTER_MINUTES } from "@/config/plant";
+import { plant, POLL_MS, STALE_AFTER_MINUTES, type PipeLine } from "@/config/plant";
 import { PlantLine } from "./PlantLine";
 import styles from "./dashboard.module.css";
 
@@ -54,7 +54,10 @@ export function Dashboard() {
 
   const assigned = new Set(plant.flatMap((l) => l.valves));
   const unassigned = valves.map((v) => v.deviceId).filter((id) => !assigned.has(id)).sort();
-  const lines = unassigned.length ? [...plant, { name: "Unassigned", valves: unassigned }] : plant;
+  const lines: PipeLine[] = [
+    ...plant,
+    ...unassigned.map((id) => ({ name: byId.get(id)?.name ?? id, valves: [id] })),
+  ];
 
   const live = tick !== null && lastOk !== null && tick - lastOk < POLL_MS * 3;
   if (tick === null) return <main className={styles.page} />;
@@ -79,7 +82,7 @@ export function Dashboard() {
             name={l.name}
             deviceIds={l.valves}
             valves={byId}
-            tankLevel={"tankLevel" in l ? l.tankLevel : undefined}
+            tankLevel={l.tankLevel}
             now={now}
             staleMinutes={STALE_AFTER_MINUTES}
           />
