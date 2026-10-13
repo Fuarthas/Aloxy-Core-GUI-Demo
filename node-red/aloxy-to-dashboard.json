@@ -1,0 +1,331 @@
+[
+  {
+    "id": "a10000000000tab1",
+    "type": "tab",
+    "label": "Aloxy → Vercel dashboard",
+    "disabled": false,
+    "info": "Forwards Aloxy.Core data to the Vercel dashboard (/api/ingest).\nFed by a link-out node on the 'Aloxy HTTP Push to Modbus' tab (added by scripts/merge-node-red-flow.mjs).\nNeeds DASHBOARD_URL and INGEST_TOKEN env vars on the node-red container."
+  },
+  {
+    "id": "a1000000000cmt01",
+    "type": "comment",
+    "z": "a10000000000tab1",
+    "name": "1. Every update from Aloxy's flow (/aloxy pushes + start-up things.json) arrives here",
+    "info": "",
+    "x": 360,
+    "y": 60,
+    "wires": []
+  },
+  {
+    "id": "a1000000000lin01",
+    "type": "link in",
+    "z": "a10000000000tab1",
+    "name": "from Aloxy flow",
+    "links": [],
+    "x": 150,
+    "y": 120,
+    "wires": [
+      [
+        "a1000000000fwd01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000fwd01",
+    "type": "function",
+    "z": "a10000000000tab1",
+    "name": "to dashboard",
+    "func": "// Sends Aloxy.Core data (one thing, or an array from things.json) to the\n// Vercel dashboard. URL and token come from the node-red container's\n// environment, so no secret is stored in this flow.\nconst base = env.get(\"DASHBOARD_URL\");\nconst token = env.get(\"INGEST_TOKEN\");\nif (!base || !token) {\n    node.warn(\"DASHBOARD_URL / INGEST_TOKEN not set on the node-red container\");\n    return null;\n}\nreturn {\n    url: base.replace(/\\/$/, \"\") + \"/api/ingest\",\n    method: \"POST\",\n    headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + token },\n    payload: msg.payload\n};",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 370,
+    "y": 120,
+    "wires": [
+      [
+        "a1000000000req01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000req01",
+    "type": "http request",
+    "z": "a10000000000tab1",
+    "name": "POST Vercel /api/ingest",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 590,
+    "y": 120,
+    "wires": [
+      [
+        "a1000000000dbg01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000dbg01",
+    "type": "debug",
+    "z": "a10000000000tab1",
+    "name": "dashboard reply",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": true,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "statusCode",
+    "statusType": "msg",
+    "x": 820,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "a1000000000cmt03",
+    "type": "comment",
+    "z": "a10000000000tab1",
+    "name": "2. Demo: Aloxy test payloads, decoded by Core (real decoder; each device ID probably uses a licence slot)",
+    "info": "",
+    "x": 450,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "a1000000000inj02",
+    "type": "inject",
+    "z": "a10000000000tab1",
+    "name": "00001 → 0%",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "5",
+    "topic": "70B3D57BB1000001",
+    "payload": "205a000c04b50000006010c001010d00",
+    "payloadType": "str",
+    "x": 140,
+    "y": 260,
+    "wires": [
+      [
+        "a1000000000dem01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000inj03",
+    "type": "inject",
+    "z": "a10000000000tab1",
+    "name": "00001 → 100%",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "5",
+    "topic": "70B3D57BB1000001",
+    "payload": "205a000c04b50100006010c001010d00",
+    "payloadType": "str",
+    "x": 150,
+    "y": 300,
+    "wires": [
+      [
+        "a1000000000dem01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000inj04",
+    "type": "inject",
+    "z": "a10000000000tab1",
+    "name": "00002 → 100%",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "5",
+    "topic": "70B3D57BB1000002",
+    "payload": "205a000c04b50100006010c001010d00",
+    "payloadType": "str",
+    "x": 150,
+    "y": 340,
+    "wires": [
+      [
+        "a1000000000dem01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000inj05",
+    "type": "inject",
+    "z": "a10000000000tab1",
+    "name": "00003 → invalid",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "5",
+    "topic": "70B3D57BB1000003",
+    "payload": "205a000c0482e0ffffc5184102021900",
+    "payloadType": "str",
+    "x": 160,
+    "y": 380,
+    "wires": [
+      [
+        "a1000000000dem01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000inj06",
+    "type": "inject",
+    "z": "a10000000000tab1",
+    "name": "auto demo every 15 s (enable me)",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "15",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "5",
+    "topic": "",
+    "payload": "",
+    "payloadType": "str",
+    "x": 200,
+    "y": 440,
+    "wires": [
+      [
+        "a1000000000lop01"
+      ]
+    ],
+    "d": true
+  },
+  {
+    "id": "a1000000000lop01",
+    "type": "function",
+    "z": "a10000000000tab1",
+    "name": "random valve + payload",
+    "func": "// Demo loop: every tick, one random demo valve gets a random test payload.\nconst devices = [\"70B3D57BB1000001\", \"70B3D57BB1000002\", \"70B3D57BB1000003\"];\nconst payloads = [\n    \"205a000c04b50000006010c001010d00\", // 0 %\n    \"205a000c04b50100006010c001010d00\", // 100 %\n    \"205a000c04b50100006010c001010d00\", // 100 % (weighted: mostly open)\n    \"205a000c0482e0ffffc5184102021900\"  // invalid position\n];\nmsg.topic = devices[Math.floor(Math.random() * devices.length)];\nmsg.payload = payloads[Math.floor(Math.random() * payloads.length)];\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 440,
+    "wires": [
+      [
+        "a1000000000dem01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000dem01",
+    "type": "function",
+    "z": "a10000000000tab1",
+    "name": "Core decode URL",
+    "func": "// Asks Aloxy.Core to decode a test payload for a demo device. Core then\n// pushes the result to /aloxy, which forwards it to the dashboard, so this\n// tests the whole real path. msg.topic = device ID, msg.payload = hex.\nmsg.url = \"http://aloxy-core:8080/core/calculate/hex/\" + msg.topic;\nmsg.headers = { \"Content-Type\": \"text/plain\" };\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 320,
+    "wires": [
+      [
+        "a1000000000dec01"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000dec01",
+    "type": "http request",
+    "z": "a10000000000tab1",
+    "name": "POST Core calculate/hex",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 650,
+    "y": 320,
+    "wires": [
+      [
+        "a1000000000dbg02"
+      ]
+    ]
+  },
+  {
+    "id": "a1000000000dbg02",
+    "type": "debug",
+    "z": "a10000000000tab1",
+    "name": "Core decode result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 880,
+    "y": 320,
+    "wires": []
+  }
+]
