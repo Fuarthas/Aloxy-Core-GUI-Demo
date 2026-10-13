@@ -24,6 +24,7 @@ sensor or test payload
 | `app/api/valves` | `GET`: current state of all valves. `DELETE`: clears them (needs the token). |
 | `components/` | The SVG diagram and the details table |
 | `scripts/simulate.mjs` | Fake sensors, for testing without the Pi |
+| `pi/kiosk.sh` | Full-screen browser on the Pi's monitor, started at login |
 | `node-red/aloxy-to-dashboard.json` | Node-RED add-on tab (forward to Vercel, demo buttons) |
 | `scripts/merge-node-red-flow.mjs` | Joins the add-on onto Aloxy's Modbus flow into one import file |
 
@@ -75,13 +76,14 @@ The demo buttons use Aloxy.Core's real decoder, so each demo device ID registers
 
 ## Kiosk (Pi monitor)
 
-The Pi runs Raspberry Pi OS (Debian 13) with the labwc desktop. Add to `~/.config/labwc/autostart`:
+The Pi runs Raspberry Pi OS (Debian 13) with labwc and auto-login.
 
-```
-chromium --kiosk --noerrdialogs --disable-infobars --incognito https://<app>.vercel.app &
-```
+1. Copy `pi/kiosk.sh` to `~/kiosk.sh` on the Pi and run `chmod +x ~/kiosk.sh`. It waits up to 2 minutes for internet, then opens Chromium full screen. It needs `--ozone-platform=wayland`; without it Chromium tries X11 and exits.
+2. Create `~/.config/labwc/autostart`: copy `/etc/xdg/labwc/autostart` (your file replaces the system one, so keep its lines), then add `/home/aloxy/kiosk.sh &`.
+3. Turn off screen blanking: `sudo raspi-config` → Display Options → Screen Blanking → No.
+4. Turn off Wi-Fi power saving, or the Pi drops off the network when idle: `sudo nmcli connection modify <wifi-connection> 802-11-wireless.powersave 2`
 
-Turn off screen blanking with `sudo raspi-config` → Display Options → Screen Blanking → No.
+To leave the kiosk, press Alt+F4.
 
 ## Changing the layout
 
